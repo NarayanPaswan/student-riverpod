@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../../../utils/components/app_constant.dart';
+
 final authControllerProvider = ChangeNotifierProvider(
   (ref)=> AuthController(),
 );
@@ -115,7 +117,7 @@ class AuthController extends ChangeNotifier {
     try {
       final dio = Dio();
       final response = await dio.post(
-        'http://192.168.16.102:8000/api/auth/login',
+        AppConstants.loginUri,
         data: {
           'email': email,
           'password': password
@@ -144,7 +146,7 @@ class AuthController extends ChangeNotifier {
     try {
       final dio = Dio();
       final response = await dio.post(
-        'http://192.168.16.102:8000/api/auth/register',
+        AppConstants.registrationUri,
         data: {
           'name': name,
           'email': email,
