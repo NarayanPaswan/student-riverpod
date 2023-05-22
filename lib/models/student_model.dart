@@ -9,12 +9,13 @@ class StudentModel {
     data = json['data'] != null ? Data.fromJson(json['data']) : null;
   }
 
-  
+ 
 }
 
 class Data {
   int? currentPage;
-  List<Data>? data;
+  // List<Data>? data;
+ List<StudentData>? data;  // Modify the type to StudentData
   String? firstPageUrl;
   int? from;
   int? lastPage;
@@ -45,9 +46,9 @@ class Data {
   Data.fromJson(Map<String, dynamic> json) {
     currentPage = json['current_page'];
     if (json['data'] != null) {
-      data = <Data>[];
+      data = <StudentData>[]; // Modify the type to StudentData
       json['data'].forEach((v) {
-        data!.add(Data.fromJson(v));
+         data!.add(StudentData.fromJson(v));  // Modify the type to StudentData
       });
     }
     firstPageUrl = json['first_page_url'];
@@ -68,24 +69,27 @@ class Data {
     total = json['total'];
   }
 
-  
+ 
 }
 
-class Student {
+class StudentData {
   int? id;
   String? name;
-  String? createdAt;
-  String? updatedAt;
+  
 
-  Student({this.id, this.name, this.createdAt, this.updatedAt});
+  StudentData(
+      {this.id,
+      this.name,
+    });
 
-  Student.fromJson(Map<String, dynamic> json) {
+  StudentData.fromJson(Map<String, dynamic> json) {
     id = json['id'];
     name = json['name'];
-    createdAt = json['created_at'];
-    updatedAt = json['updated_at'];
+    
   }
+ 
 
+ 
 }
 
 class Links {

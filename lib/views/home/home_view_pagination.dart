@@ -1,38 +1,40 @@
 import 'package:dio/dio.dart';
-import 'package:student_riverpod/models/student_model.dart';
 import '../../utils/exports.dart';
 import '../auth/controller/auth_controller.dart';
 import '../auth/login_view.dart';
 
-class HomeView extends StatefulWidget {
-  const HomeView({Key? key}) : super(key: key);
+class HomeViewPagination extends StatefulWidget {
+  const HomeViewPagination({Key? key}) : super(key: key);
 
   @override
-  State<HomeView> createState() => _HomeViewState();
+  State<HomeViewPagination> createState() => _HomeViewPaginationState();
 }
 
-class _HomeViewState extends State<HomeView> {
+class _HomeViewPaginationState extends State<HomeViewPagination> {
   final authcontroll = AuthController();
   final scrollController = ScrollController();
   bool isLoadingMore = false;
   int pageNo = 1;
   List students = [];
   bool hasMoreData = true;
+    showSnackBar (BuildContext context){
+    final snackBar = SnackBar(content: Text("hi"));
+    ScaffoldMessenger.of(context).showSnackBar(snackBar);
+  }
 
   @override
   void initState() {
     super.initState();
     scrollController.addListener(_scrollListener);
-    // fetchAllStudents();
+    fetchAllStudents();
   }
 
   final dio = Dio();
 
-  Future<StudentModel> fetchAllStudents() async {
-     
+  Future<void> fetchAllStudents() async {
     String token = await authcontroll.getToken();
     final url = 'http://192.168.16.104:8000/api/auth/all-students?page=$pageNo';
-    // print(url);
+    print(url);
     final response = await dio.get(
       url,
       options: Options(
@@ -43,9 +45,11 @@ class _HomeViewState extends State<HomeView> {
       ),
     );
 
-   return StudentModel.fromJson(response.data);
-    
-   
+    final json = response.data['data']['data'] as List;
+    setState(() {
+      students = students + json;
+      hasMoreData = response.data['data']['next_page_url'] != null;
+    });
   }
 
   @override
@@ -68,39 +72,25 @@ class _HomeViewState extends State<HomeView> {
       body: Column(
         children: [
           Expanded(
-            child: FutureBuilder(
-                  future: fetchAllStudents(),
-                  builder: (context, AsyncSnapshot<StudentModel> snapshot){
-            if(!snapshot.hasData){
-              return const Center(
-                    child: CircularProgressIndicator(),
+            child: students.isNotEmpty ?
+            ListView.builder(
+              controller: scrollController,
+              shrinkWrap: true,
+              itemCount: isLoadingMore ? students.length + 1 : students.length,
+              itemBuilder: (context, index) {
+                if (index < students.length) {
+                  return ListTile(
+                    title: Text(students[index]['name'].toString()),
                   );
-            }else if (snapshot.hasError){
-              return Center(
-                    child: Text(snapshot.error.toString()),
-                  );
-            }else{
-               if (snapshot.data!.data!.data!.isEmpty) {
+                } else {
                   return const Center(
-                    child: Text("Data not available !"),
-                  );
+                      child: CircularProgressIndicator());
                 }
-            return  ListView.builder(
-                shrinkWrap: true,
-                itemCount: snapshot.data!.data!.data!.length,
-                itemBuilder: (context, index) {
-                   StudentData student = snapshot.data!.data!.data![index];
-                    return ListTile(
-                      title: Text(student.name ?? ''),
-                    );
-                  
-                },
-              );
-                  }
-                }),
+              },
+            ): const Center(child: CircularProgressIndicator()),
           ),
-
-        
+          if (!hasMoreData)
+            const Text("No more data available")
        
         ],
       ),
@@ -119,7 +109,7 @@ class _HomeViewState extends State<HomeView> {
       setState(() {
         isLoadingMore = false;
       });
-      // print('we reach in last position. so call');
+      print('we reach in last position. so call');
       
     }
   }
